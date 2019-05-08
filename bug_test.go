@@ -693,3 +693,10 @@ func Test_issue234(t *testing.T) {
 		`, "6,E")
 	})
 }
+
+func Test_issueAssignment(t *testing.T) {
+	tt(t, func() {
+		test, _ := test()
+		test(`var a = 1; a += (a = 2)`, 3)
+	})
+}
