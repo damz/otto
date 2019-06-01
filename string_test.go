@@ -420,3 +420,81 @@ func TestString_localeCompare(t *testing.T) {
 		test(`'a'.localeCompare('a');`, 0)
 	})
 }
+
+func TestString_startsWith(t *testing.T) {
+	tt(t, func() {
+		test, _ := test()
+
+		test(`"".startsWith("")`, true)
+		test(`"".startsWith("a")`, false)
+
+		test(`"abcd".startsWith("ab")`, true)
+		test(`"abcd".startsWith("bc")`, false)
+		test(`"abcd".startsWith("ab", 1)`, false)
+		test(`"abcd".startsWith("bc", 1)`, true)
+
+		test(`"abcd".startsWith("ab", -9)`, true)
+		test(`"abcd".startsWith("bc", -9)`, false)
+
+		test(`"abcd".startsWith("ab", 10)`, false)
+		test(`"abcd".startsWith("bc", 10)`, false)
+	})
+}
+
+func TestString_endsWith(t *testing.T) {
+	tt(t, func() {
+		test, _ := test()
+
+		test(`"".endsWith("")`, true)
+		test(`"".endsWith("a")`, false)
+
+		test(`"abcd".endsWith("cd")`, true)
+		test(`"abcd".endsWith("bc")`, false)
+
+		test(`"abcd".endsWith("cd", 3)`, false)
+		test(`"abcd".endsWith("bc", 3)`, true)
+
+		test(`"abcd".endsWith("bc", 2)`, false)
+		test(`"abcd".endsWith("ab", 2)`, true)
+
+		test(`"abcd".endsWith("ab", -9)`, false)
+		test(`"abcd".endsWith("bc", -9)`, false)
+		test(`"abcd".endsWith("cd", -9)`, false)
+
+		test(`"abcd".endsWith("cd", 10)`, true)
+		test(`"abcd".endsWith("bc", 10)`, false)
+	})
+}
+
+func TestString_includes(t *testing.T) {
+	tt(t, func() {
+		test, _ := test()
+
+		test(`"".includes("")`, true)
+		test(`"".includes("a")`, false)
+
+		test(`"abcd".includes("a")`, true)
+		test(`"abcd".includes("b")`, true)
+		test(`"abcd".includes("c")`, true)
+		test(`"abcd".includes("d")`, true)
+
+		test(`"abcd".includes("e")`, false)
+
+		test(`"abcd".includes("ab")`, true)
+		test(`"abcd".includes("bc")`, true)
+		test(`"abcd".includes("cd")`, true)
+
+		test(`"abcd".includes("abc")`, true)
+		test(`"abcd".includes("bcd")`, true)
+
+		test(`"abcd".includes("abcd")`, true)
+
+		test(`"abcd".includes("ab", 1)`, false)
+		test(`"abcd".includes("bc", 1)`, true)
+		test(`"abcd".includes("cd", 1)`, true)
+
+		test(`"abcd".includes("ab", -9)`, true)
+		test(`"abcd".includes("bc", -9)`, true)
+		test(`"abcd".includes("cd", -9)`, true)
+	})
+}

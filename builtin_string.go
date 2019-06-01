@@ -498,3 +498,53 @@ func builtinString_toLocaleLowerCase(call FunctionCall) Value {
 func builtinString_toLocaleUpperCase(call FunctionCall) Value {
 	return builtinString_toUpperCase(call)
 }
+
+func builtinString_startsWith(call FunctionCall) Value {
+	checkObjectCoercible(call.runtime, call.This)
+	this := call.This.string()
+	thisLen := len(this)
+	that := toStringNoRegexp(call.runtime, call.Argument(0))
+	position := toIndex(call.Argument(1), 0, thisLen)
+	return toValue_bool(strings.HasPrefix(this[position:], that))
+}
+
+func builtinString_endsWith(call FunctionCall) Value {
+	checkObjectCoercible(call.runtime, call.This)
+	this := call.This.string()
+	thisLen := len(this)
+	that := toStringNoRegexp(call.runtime, call.Argument(0))
+	position := toIndex(call.Argument(1), thisLen, thisLen)
+	return toValue_bool(strings.HasSuffix(this[:position], that))
+}
+
+func builtinString_includes(call FunctionCall) Value {
+	checkObjectCoercible(call.runtime, call.This)
+	this := call.This.string()
+	thisLen := len(this)
+	that := toStringNoRegexp(call.runtime, call.Argument(0))
+	position := toIndex(call.Argument(1), 0, thisLen)
+	return toValue_bool(strings.Contains(this[position:], that))
+}
+
+func toStringNoRegexp(r *_runtime, val Value) string {
+	if val.IsObject() && val._object().class == "RegExp" {
+		panic(r.panicTypeError())
+	}
+	return val.string()
+}
+
+func toIndex(val Value, def int, max int) int {
+	var idx int
+	if !val.IsUndefined() {
+		idx = int(val.number().int64)
+	} else {
+		idx = def
+	}
+	if idx < 0 {
+		idx = 0
+	}
+	if idx >= max {
+		idx = max
+	}
+	return idx
+}
