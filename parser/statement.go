@@ -302,12 +302,8 @@ func (self *_parser) parseFunction(declaration bool) *ast.FunctionLiteral {
 func (self *_parser) parseFunctionBlock(node *ast.FunctionLiteral) {
 	{
 		self.openScope()
-		inFunction := self.scope.inFunction
 		self.scope.inFunction = true
-		defer func() {
-			self.scope.inFunction = inFunction
-			self.closeScope()
-		}()
+		defer self.closeScope()
 		node.Body = self.parseBlockStatement()
 		node.DeclarationList = self.scope.declarationList
 	}
