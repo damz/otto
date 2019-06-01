@@ -146,6 +146,88 @@ func TestFunctionDeclarationInFunction(t *testing.T) {
 	})
 }
 
+func TestFunctionHoisting(t *testing.T) {
+	tt(t, func() {
+		test, _ := test()
+
+		test(`
+			(function() {
+				function a() { return 1; };
+				return a();
+			})();
+			`,
+			1)
+
+		test(`
+			(function() {
+				return a();
+				function a() { return 1; };
+			})();
+			`,
+			1)
+
+		test(`raise:
+			(function() {
+				return a();
+			})();
+			`,
+			"ReferenceError: 'a' is not defined")
+
+		test(`raise:
+			(function() {
+				return a();
+				{
+					function a() { return 1; };
+				}
+			})();
+			`,
+			"ReferenceError: 'a' is not defined")
+
+		test(`
+			function abc(ok) {
+				if (ok) {
+					function a() {
+						return 1;
+					}
+				} else {
+					function a() {
+						return 2;
+					}
+				}
+				return a;
+			}
+			String([abc(true)(), abc(false)()]);
+			`,
+			"1,2",
+		)
+
+		test(`
+			(function() {
+				return a;
+				function a() {
+					return 1;
+				}
+				function a() {
+					return 2;
+				}
+			})();
+			`,
+			2,
+		)
+
+		test(`
+			(function() {
+				a.foo = "bar";
+				function a() {}
+				return "foo" in a;
+			})();
+			`,
+			true,
+		)
+
+	})
+}
+
 func TestArguments_defineOwnProperty(t *testing.T) {
 	tt(t, func() {
 		test, _ := test()
