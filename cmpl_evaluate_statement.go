@@ -27,6 +27,22 @@ func (self *_runtime) cmpl_evaluate_nodeStatement(node _nodeStatement) Value {
 		labels := self.labels
 		self.labels = nil
 
+		if len(node.varList) > 0 || len(node.constList) > 0 {
+			outer := self.scope.lexical
+			self.scope.lexical = self.newDeclarationStash(outer)
+			defer func() {
+				self.scope.lexical = outer
+			}()
+
+			for _, name := range node.varList {
+				self.scope.lexical.createBinding(name, true, Value{})
+			}
+
+			for _, name := range node.constList {
+				self.scope.lexical.createImmutableBinding(name, Value{})
+			}
+		}
+
 		value := self.cmpl_evaluate_nodeStatementList(node.list)
 		switch value.kind {
 		case valueResult:

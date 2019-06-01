@@ -224,6 +224,8 @@ type (
 		LeftBrace  file.Idx
 		List       []Statement
 		RightBrace file.Idx
+
+		DeclarationList []Declaration
 	}
 
 	BranchStatement struct {
@@ -375,8 +377,10 @@ type (
 	}
 
 	VariableDeclaration struct {
-		Var  file.Idx
-		List []*VariableExpression
+		Var   file.Idx
+		List  []*VariableExpression
+		Block bool
+		Const bool
 	}
 )
 

@@ -11,6 +11,7 @@ type _scope struct {
 	inSwitch        bool
 	inFunction      bool
 	declarationList []ast.Declaration
+	block           bool
 
 	labels []string
 }
@@ -22,23 +23,48 @@ func (self *_parser) openScope() {
 	}
 }
 
+func (self *_parser) openBlockScope() {
+	self.scope = &_scope{
+		outer:       self.scope,
+		block:       true,
+		allowIn:     self.scope.allowIn,
+		inIteration: self.scope.inIteration,
+		inSwitch:    self.scope.inSwitch,
+		inFunction:  self.scope.inFunction,
+	}
+}
+
 func (self *_parser) closeScope() {
 	self.scope = self.scope.outer
 }
 
+func (self *_scope) definitionScope() *_scope {
+	scope := self
+	for scope.block && scope.outer != nil {
+		scope = scope.outer
+	}
+	return scope
+}
+
 func (self *_scope) declare(declaration ast.Declaration) {
-	self.declarationList = append(self.declarationList, declaration)
+	scope := self
+	if declaration, ok := declaration.(*ast.VariableDeclaration); !ok || !declaration.Block {
+		scope = scope.definitionScope()
+	}
+	scope.declarationList = append(scope.declarationList, declaration)
 }
 
 func (self *_scope) hasLabel(name string) bool {
-	for _, label := range self.labels {
+	scope := self.definitionScope()
+	for _, label := range scope.labels {
 		if label == name {
 			return true
 		}
 	}
-	if self.outer != nil && !self.inFunction {
-		// Crossing a function boundary to look for a label is verboten
-		return self.outer.hasLabel(name)
-	}
 	return false
+}
+
+func (self *_scope) pushLabel(name string) {
+	scope := self.definitionScope()
+	scope.labels = append(scope.labels, name)
 }

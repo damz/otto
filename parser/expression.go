@@ -208,7 +208,7 @@ func (self *_parser) parseVariableDeclaration(declarationList *[]*ast.VariableEx
 	return node
 }
 
-func (self *_parser) parseVariableDeclarationList(var_ file.Idx) []ast.Expression {
+func (self *_parser) parseVariableDeclarationList(var_ file.Idx, tk token.Token) []ast.Expression {
 
 	var declarationList []*ast.VariableExpression // Avoid bad expressions
 	var list []ast.Expression
@@ -229,8 +229,10 @@ func (self *_parser) parseVariableDeclarationList(var_ file.Idx) []ast.Expressio
 	}
 
 	self.scope.declare(&ast.VariableDeclaration{
-		Var:  var_,
-		List: declarationList,
+		Var:   var_,
+		List:  declarationList,
+		Block: tk == token.LET || tk == token.CONST,
+		Const: tk == token.CONST,
 	})
 
 	return list

@@ -6,6 +6,9 @@ import (
 )
 
 func (self *_parser) parseBlockStatement() *ast.BlockStatement {
+	self.openBlockScope()
+	defer self.closeScope()
+
 	node := &ast.BlockStatement{}
 
 	// Find comments before the leading brace
@@ -31,6 +34,8 @@ func (self *_parser) parseBlockStatement() *ast.BlockStatement {
 		self.comments.CommentMap.AddComments(node, self.comments.Fetch(), ast.TRAILING)
 	}
 
+	node.DeclarationList = self.scope.declarationList
+
 	return node
 }
 
@@ -41,7 +46,13 @@ func (self *_parser) parseEmptyStatement() ast.Statement {
 
 func (self *_parser) parseStatementList() (list []ast.Statement) {
 	for self.token != token.RIGHT_BRACE && self.token != token.EOF {
-		statement := self.parseStatement()
+		var statement ast.Statement
+		switch self.token {
+		case token.LET, token.CONST:
+			statement = self.parseVariableStatement()
+		default:
+			statement = self.parseStatement()
+		}
 		list = append(list, statement)
 	}
 
@@ -112,18 +123,15 @@ func (self *_parser) parseStatement() ast.Statement {
 		self.next() // :
 
 		label := identifier.Name
-		for _, value := range self.scope.labels {
-			if label == value {
-				self.error(identifier.Idx0(), "Label '%s' already exists", label)
-			}
+		if self.scope.hasLabel(label) {
+			self.error(identifier.Idx0(), "Label '%s' already exists", label)
 		}
 		var labelComments []*ast.Comment
 		if self.mode&StoreComments != 0 {
 			labelComments = self.comments.FetchAll()
 		}
-		self.scope.labels = append(self.scope.labels, label) // Push the label
+		self.scope.pushLabel(label)
 		statement := self.parseStatement()
-		self.scope.labels = self.scope.labels[:len(self.scope.labels)-1] // Pop the label
 		exp := &ast.LabelledStatement{
 			Label:     identifier,
 			Colon:     colon,
@@ -578,15 +586,16 @@ func (self *_parser) parseForOrForInStatement() ast.Statement {
 
 		allowIn := self.scope.allowIn
 		self.scope.allowIn = false
-		if self.token == token.VAR {
+		if self.token == token.VAR || self.token == token.CONST || self.token == token.LET {
 			var_ := self.idx
+			tk := self.token
 			var varComments []*ast.Comment
 			if self.mode&StoreComments != 0 {
 				varComments = self.comments.FetchAll()
 				self.comments.Unset()
 			}
 			self.next()
-			list := self.parseVariableDeclarationList(var_)
+			list := self.parseVariableDeclarationList(var_, tk)
 			if len(list) == 1 && self.token == token.IN {
 				if self.mode&StoreComments != 0 {
 					self.comments.Unset()
@@ -646,9 +655,11 @@ func (self *_parser) parseVariableStatement() *ast.VariableStatement {
 	if self.mode&StoreComments != 0 {
 		comments = self.comments.FetchAll()
 	}
-	idx := self.expect(token.VAR)
+	idx := self.idx
+	tp := self.token
+	self.next()
 
-	list := self.parseVariableDeclarationList(idx)
+	list := self.parseVariableDeclarationList(idx, tp)
 
 	statement := &ast.VariableStatement{
 		Var:  idx,

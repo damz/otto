@@ -210,6 +210,24 @@ func (cmpl *_compiler) parseStatement(in ast.Statement) _nodeStatement {
 		for i, value := range in.List {
 			out.list[i] = cmpl.parseStatement(value)
 		}
+
+		for _, value := range in.DeclarationList {
+			switch value := value.(type) {
+			case *ast.VariableDeclaration:
+				if value.Const {
+					for _, value := range value.List {
+						out.constList = append(out.constList, value.Name)
+					}
+				} else {
+					for _, value := range value.List {
+						out.varList = append(out.varList, value.Name)
+					}
+				}
+			default:
+				panic("invalid declaration")
+			}
+		}
+
 		return out
 
 	case *ast.BranchStatement:
@@ -521,7 +539,9 @@ type (
 	}
 
 	_nodeBlockStatement struct {
-		list []_nodeStatement
+		list      []_nodeStatement
+		varList   []string
+		constList []string
 	}
 
 	_nodeBranchStatement struct {
