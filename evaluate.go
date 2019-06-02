@@ -52,16 +52,12 @@ func (self *_runtime) evaluateModulo(left float64, right float64) Value {
 	return Value{}
 }
 
-func (self *_runtime) calculateBinaryExpression(operator token.Token, left Value, right Value) Value {
-
-	leftValue := left.resolve()
-
+func (self *_runtime) calculateBinaryExpression(operator token.Token, leftValue Value, rightValue Value) Value {
 	switch operator {
 
 	// Additive
 	case token.PLUS:
 		leftValue = toPrimitive(leftValue)
-		rightValue := right.resolve()
 		rightValue = toPrimitive(rightValue)
 
 		if leftValue.IsString() || rightValue.IsString() {
@@ -70,18 +66,14 @@ func (self *_runtime) calculateBinaryExpression(operator token.Token, left Value
 			return toValue_float64(leftValue.float64() + rightValue.float64())
 		}
 	case token.MINUS:
-		rightValue := right.resolve()
 		return toValue_float64(leftValue.float64() - rightValue.float64())
 
 		// Multiplicative
 	case token.MULTIPLY:
-		rightValue := right.resolve()
 		return toValue_float64(leftValue.float64() * rightValue.float64())
 	case token.SLASH:
-		rightValue := right.resolve()
 		return self.evaluateDivide(leftValue.float64(), rightValue.float64())
 	case token.REMAINDER:
-		rightValue := right.resolve()
 		return toValue_float64(math.Mod(leftValue.float64(), rightValue.float64()))
 
 		// Logical
@@ -90,47 +82,39 @@ func (self *_runtime) calculateBinaryExpression(operator token.Token, left Value
 		if !left {
 			return falseValue
 		}
-		return toValue_bool(right.resolve().bool())
+		return toValue_bool(rightValue.bool())
 	case token.LOGICAL_OR:
 		left := leftValue.bool()
 		if left {
 			return trueValue
 		}
-		return toValue_bool(right.resolve().bool())
+		return toValue_bool(rightValue.bool())
 
 		// Bitwise
 	case token.AND:
-		rightValue := right.resolve()
 		return toValue_int32(toInt32(leftValue) & toInt32(rightValue))
 	case token.OR:
-		rightValue := right.resolve()
 		return toValue_int32(toInt32(leftValue) | toInt32(rightValue))
 	case token.EXCLUSIVE_OR:
-		rightValue := right.resolve()
 		return toValue_int32(toInt32(leftValue) ^ toInt32(rightValue))
 
 		// Shift
 		// (Masking of 0x1f is to restrict the shift to a maximum of 31 places)
 	case token.SHIFT_LEFT:
-		rightValue := right.resolve()
 		return toValue_int32(toInt32(leftValue) << (toUint32(rightValue) & 0x1f))
 	case token.SHIFT_RIGHT:
-		rightValue := right.resolve()
 		return toValue_int32(toInt32(leftValue) >> (toUint32(rightValue) & 0x1f))
 	case token.UNSIGNED_SHIFT_RIGHT:
-		rightValue := right.resolve()
 		// Shifting an unsigned integer is a logical shift
 		return toValue_uint32(toUint32(leftValue) >> (toUint32(rightValue) & 0x1f))
 
 	case token.INSTANCEOF:
-		rightValue := right.resolve()
 		if !rightValue.IsObject() {
 			panic(self.panicTypeError("Expecting a function in instanceof check, but got: %v", rightValue))
 		}
 		return toValue_bool(rightValue._object().hasInstance(leftValue))
 
 	case token.IN:
-		rightValue := right.resolve()
 		if !rightValue.IsObject() {
 			panic(self.panicTypeError())
 		}

@@ -119,14 +119,15 @@ func (self *_runtime) cmpl_evaluate_nodeArrayLiteral(node *_nodeArrayLiteral) Va
 }
 
 func (self *_runtime) cmpl_evaluate_nodeAssignExpression(node *_nodeAssignExpression) Value {
+	var result Value
 
 	left := self.cmpl_evaluate_nodeExpression(node.left)
-	right := self.cmpl_evaluate_nodeExpression(node.right)
-	rightValue := right.resolve()
-
-	result := rightValue
 	if node.operator != token.ASSIGN {
-		result = self.calculateBinaryExpression(node.operator, left, rightValue)
+		leftValue := left.resolve()
+		rightValue := self.cmpl_evaluate_nodeExpression(node.right).resolve()
+		result = self.calculateBinaryExpression(node.operator, leftValue, rightValue)
+	} else {
+		result = self.cmpl_evaluate_nodeExpression(node.right).resolve()
 	}
 
 	self.putValue(left.reference(), result)
@@ -155,7 +156,7 @@ func (self *_runtime) cmpl_evaluate_nodeBinaryExpression(node *_nodeBinaryExpres
 		return right.resolve()
 	}
 
-	return self.calculateBinaryExpression(node.operator, leftValue, self.cmpl_evaluate_nodeExpression(node.right))
+	return self.calculateBinaryExpression(node.operator, leftValue, self.cmpl_evaluate_nodeExpression(node.right).resolve())
 }
 
 func (self *_runtime) cmpl_evaluate_nodeBinaryExpression_comparison(node *_nodeBinaryExpression) Value {
