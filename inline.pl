@@ -296,6 +296,9 @@ sub newContext {
                 "localeCompare", 1,
                 "toLocaleLowerCase", 0,
                 "toLocaleUpperCase", 0,
+                "startsWith", 1,
+                "endsWith", 1,
+                "includes", 1,
             );
             return
             ".${class}Prototype =",
