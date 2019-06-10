@@ -281,6 +281,19 @@ func TestArray_sliceArguments(t *testing.T) {
 	})
 }
 
+func TestArray_sliceNegativeLength(t *testing.T) {
+	tt(t, func() {
+		test, _ := test()
+
+		test(`
+            (function(){
+                return Array.prototype.slice.call({length:-1})
+            })();
+        `, "")
+	})
+
+}
+
 func TestArray_unshift(t *testing.T) {
 	tt(t, func() {
 		test, _ := test()

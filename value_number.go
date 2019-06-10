@@ -90,8 +90,9 @@ const (
 	float_2_32   float64 = 4294967296.0
 	float_2_31   float64 = 2147483648.0
 	float_2_16   float64 = 65536.0
-	integer_2_32 int64   = 4294967296
-	integer_2_31 int64   = 2146483648
+	integer_2_53 int64   = 1 << 53
+	integer_2_32 int64   = 1 << 32
+	integer_2_31 int64   = 1 << 31
 	sqrt1_2      float64 = math.Sqrt2 / 2
 )
 
@@ -220,12 +221,7 @@ func (value Value) number() (number _number) {
 		return
 	}
 
-	integer := float64(0)
-	if float > 0 {
-		integer = math.Floor(float)
-	} else {
-		integer = math.Ceil(float)
-	}
+	integer := math.Trunc(float)
 
 	if float == integer {
 		number.kind = numberInteger
@@ -321,4 +317,17 @@ func toUint16(value Value) uint16 {
 		remainder = math.Ceil(remainder) + float_2_16
 	}
 	return uint16(remainder)
+}
+
+// toLength converts a Javascript value into a length of an array-like object.
+//
+// See https://www.ecma-international.org/ecma-262/6.0/#sec-tolength
+func toLength(value Value) int64 {
+	n := value.number().int64
+	if n > integer_2_53-1 {
+		n = integer_2_53 - 1
+	} else if n < 0 {
+		n = 0
+	}
+	return n
 }

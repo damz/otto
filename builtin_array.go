@@ -1,7 +1,6 @@
 package otto
 
 import (
-	"strconv"
 	"strings"
 )
 
@@ -38,7 +37,7 @@ func builtinArray_toString(call FunctionCall) Value {
 func builtinArray_toLocaleString(call FunctionCall) Value {
 	separator := ","
 	thisObject := call.thisObject()
-	length := int64(toUint32(thisObject.get("length")))
+	length := toLength(thisObject.get("length"))
 	if length == 0 {
 		return toValue_string("")
 	}
@@ -70,9 +69,9 @@ func builtinArray_concat(call FunctionCall) Value {
 		case valueObject:
 			object := item._object()
 			if isArray(object) {
-				length := object.get("length").number().int64
+				length := toLength(object.get("length"))
 				for index := int64(0); index < length; index += 1 {
-					name := strconv.FormatInt(index, 10)
+					name := arrayIndexToString(index)
 					if object.hasProperty(name) {
 						valueArray = append(valueArray, object.get(name))
 					} else {
@@ -91,7 +90,7 @@ func builtinArray_concat(call FunctionCall) Value {
 
 func builtinArray_shift(call FunctionCall) Value {
 	thisObject := call.thisObject()
-	length := int64(toUint32(thisObject.get("length")))
+	length := toLength(thisObject.get("length"))
 	if 0 == length {
 		thisObject.put("length", toValue_int64(0), true)
 		return Value{}
@@ -114,7 +113,7 @@ func builtinArray_shift(call FunctionCall) Value {
 func builtinArray_push(call FunctionCall) Value {
 	thisObject := call.thisObject()
 	itemList := call.ArgumentList
-	index := int64(toUint32(thisObject.get("length")))
+	index := toLength(thisObject.get("length"))
 	for len(itemList) > 0 {
 		thisObject.put(arrayIndexToString(index), itemList[0], true)
 		itemList = itemList[1:]
@@ -127,9 +126,9 @@ func builtinArray_push(call FunctionCall) Value {
 
 func builtinArray_pop(call FunctionCall) Value {
 	thisObject := call.thisObject()
-	length := int64(toUint32(thisObject.get("length")))
+	length := toLength(thisObject.get("length"))
 	if 0 == length {
-		thisObject.put("length", toValue_uint32(0), true)
+		thisObject.put("length", toValue_int64(0), true)
 		return Value{}
 	}
 	last := thisObject.get(arrayIndexToString(length - 1))
@@ -147,7 +146,7 @@ func builtinArray_join(call FunctionCall) Value {
 		}
 	}
 	thisObject := call.thisObject()
-	length := int64(toUint32(thisObject.get("length")))
+	length := toLength(thisObject.get("length"))
 	if length == 0 {
 		return toValue_string("")
 	}
@@ -167,7 +166,7 @@ func builtinArray_join(call FunctionCall) Value {
 
 func builtinArray_splice(call FunctionCall) Value {
 	thisObject := call.thisObject()
-	length := int64(toUint32(thisObject.get("length")))
+	length := toLength(thisObject.get("length"))
 
 	start := valueToRangeIndex(call.Argument(0), length, false)
 	deleteCount := length - start
@@ -248,7 +247,7 @@ func builtinArray_splice(call FunctionCall) Value {
 func builtinArray_slice(call FunctionCall) Value {
 	thisObject := call.thisObject()
 
-	length := int64(toUint32(thisObject.get("length")))
+	length := toLength(thisObject.get("length"))
 	start, end := rangeStartEnd(call.ArgumentList, length, false)
 
 	if start >= end {
@@ -270,7 +269,7 @@ func builtinArray_slice(call FunctionCall) Value {
 
 func builtinArray_unshift(call FunctionCall) Value {
 	thisObject := call.thisObject()
-	length := int64(toUint32(thisObject.get("length")))
+	length := toLength(thisObject.get("length"))
 	itemList := call.ArgumentList
 	itemCount := int64(len(itemList))
 
@@ -295,7 +294,7 @@ func builtinArray_unshift(call FunctionCall) Value {
 
 func builtinArray_reverse(call FunctionCall) Value {
 	thisObject := call.thisObject()
-	length := int64(toUint32(thisObject.get("length")))
+	length := toLength(thisObject.get("length"))
 
 	lower := struct {
 		name   string
@@ -338,7 +337,7 @@ func builtinArray_reverse(call FunctionCall) Value {
 	return call.This
 }
 
-func sortCompare(thisObject *_object, index0, index1 uint, compare *_object) int {
+func sortCompare(thisObject *_object, index0, index1 int64, compare *_object) int {
 	j := struct {
 		name    string
 		exists  bool
@@ -346,9 +345,9 @@ func sortCompare(thisObject *_object, index0, index1 uint, compare *_object) int
 		value   string
 	}{}
 	k := j
-	j.name = arrayIndexToString(int64(index0))
+	j.name = arrayIndexToString(index0)
 	j.exists = thisObject.hasProperty(j.name)
-	k.name = arrayIndexToString(int64(index1))
+	k.name = arrayIndexToString(index1)
 	k.exists = thisObject.hasProperty(k.name)
 
 	if !j.exists && !k.exists {
@@ -388,7 +387,7 @@ func sortCompare(thisObject *_object, index0, index1 uint, compare *_object) int
 	return int(toInt32(compare.call(Value{}, []Value{x, y}, false, nativeFrame)))
 }
 
-func arraySortSwap(thisObject *_object, index0, index1 uint) {
+func arraySortSwap(thisObject *_object, index0, index1 int64) {
 
 	j := struct {
 		name   string
@@ -396,9 +395,9 @@ func arraySortSwap(thisObject *_object, index0, index1 uint) {
 	}{}
 	k := j
 
-	j.name = arrayIndexToString(int64(index0))
+	j.name = arrayIndexToString(index0)
 	j.exists = thisObject.hasProperty(j.name)
-	k.name = arrayIndexToString(int64(index1))
+	k.name = arrayIndexToString(index1)
 	k.exists = thisObject.hasProperty(k.name)
 
 	if j.exists && k.exists {
@@ -419,7 +418,7 @@ func arraySortSwap(thisObject *_object, index0, index1 uint) {
 	}
 }
 
-func arraySortQuickPartition(thisObject *_object, left, right, pivot uint, compare *_object) (uint, uint) {
+func arraySortQuickPartition(thisObject *_object, left, right, pivot int64, compare *_object) (int64, int64) {
 	arraySortSwap(thisObject, pivot, right) // Right is now the pivot value
 	cursor := left
 	cursor2 := left
@@ -441,7 +440,7 @@ func arraySortQuickPartition(thisObject *_object, left, right, pivot uint, compa
 	return cursor, cursor2
 }
 
-func arraySortQuickSort(thisObject *_object, left, right uint, compare *_object) {
+func arraySortQuickSort(thisObject *_object, left, right int64, compare *_object) {
 	if left < right {
 		middle := left + (right-left)/2
 		pivot, pivot2 := arraySortQuickPartition(thisObject, left, right, middle, compare)
@@ -454,7 +453,7 @@ func arraySortQuickSort(thisObject *_object, left, right uint, compare *_object)
 
 func builtinArray_sort(call FunctionCall) Value {
 	thisObject := call.thisObject()
-	length := uint(toUint32(thisObject.get("length")))
+	length := toLength(thisObject.get("length"))
 	compareValue := call.Argument(0)
 	compare := compareValue._object()
 	if compareValue.IsUndefined() {
@@ -473,7 +472,7 @@ func builtinArray_isArray(call FunctionCall) Value {
 
 func builtinArray_indexOf(call FunctionCall) Value {
 	thisObject, matchValue := call.thisObject(), call.Argument(0)
-	if length := int64(toUint32(thisObject.get("length"))); length > 0 {
+	if length := toLength(thisObject.get("length")); length > 0 {
 		index := int64(0)
 		if len(call.ArgumentList) > 1 {
 			index = call.Argument(1).number().int64
@@ -486,13 +485,13 @@ func builtinArray_indexOf(call FunctionCall) Value {
 			index = -1
 		}
 		for ; index >= 0 && index < length; index++ {
-			name := arrayIndexToString(int64(index))
+			name := arrayIndexToString(index)
 			if !thisObject.hasProperty(name) {
 				continue
 			}
 			value := thisObject.get(name)
 			if strictEqualityComparison(matchValue, value) {
-				return toValue_uint32(uint32(index))
+				return toValue_int64(index)
 			}
 		}
 	}
@@ -501,7 +500,7 @@ func builtinArray_indexOf(call FunctionCall) Value {
 
 func builtinArray_lastIndexOf(call FunctionCall) Value {
 	thisObject, matchValue := call.thisObject(), call.Argument(0)
-	length := int64(toUint32(thisObject.get("length")))
+	length := toLength(thisObject.get("length"))
 	index := length - 1
 	if len(call.ArgumentList) > 1 {
 		index = call.Argument(1).number().int64
@@ -515,13 +514,13 @@ func builtinArray_lastIndexOf(call FunctionCall) Value {
 		return toValue_int(-1)
 	}
 	for ; index >= 0; index-- {
-		name := arrayIndexToString(int64(index))
+		name := arrayIndexToString(index)
 		if !thisObject.hasProperty(name) {
 			continue
 		}
 		value := thisObject.get(name)
 		if strictEqualityComparison(matchValue, value) {
-			return toValue_uint32(uint32(index))
+			return toValue_int64(index)
 		}
 	}
 	return toValue_int(-1)
@@ -531,7 +530,7 @@ func builtinArray_every(call FunctionCall) Value {
 	thisObject := call.thisObject()
 	this := toValue_object(thisObject)
 	if iterator := call.Argument(0); iterator.isCallable() {
-		length := int64(toUint32(thisObject.get("length")))
+		length := toLength(thisObject.get("length"))
 		callThis := call.Argument(1)
 		for index := int64(0); index < length; index++ {
 			if key := arrayIndexToString(index); thisObject.hasProperty(key) {
@@ -550,7 +549,7 @@ func builtinArray_some(call FunctionCall) Value {
 	thisObject := call.thisObject()
 	this := toValue_object(thisObject)
 	if iterator := call.Argument(0); iterator.isCallable() {
-		length := int64(toUint32(thisObject.get("length")))
+		length := toLength(thisObject.get("length"))
 		callThis := call.Argument(1)
 		for index := int64(0); index < length; index++ {
 			if key := arrayIndexToString(index); thisObject.hasProperty(key) {
@@ -568,7 +567,7 @@ func builtinArray_forEach(call FunctionCall) Value {
 	thisObject := call.thisObject()
 	this := toValue_object(thisObject)
 	if iterator := call.Argument(0); iterator.isCallable() {
-		length := int64(toUint32(thisObject.get("length")))
+		length := toLength(thisObject.get("length"))
 		callThis := call.Argument(1)
 		for index := int64(0); index < length; index++ {
 			if key := arrayIndexToString(index); thisObject.hasProperty(key) {
@@ -584,7 +583,7 @@ func builtinArray_map(call FunctionCall) Value {
 	thisObject := call.thisObject()
 	this := toValue_object(thisObject)
 	if iterator := call.Argument(0); iterator.isCallable() {
-		length := int64(toUint32(thisObject.get("length")))
+		length := toLength(thisObject.get("length"))
 		callThis := call.Argument(1)
 		values := make([]Value, length)
 		for index := int64(0); index < length; index++ {
@@ -603,7 +602,7 @@ func builtinArray_filter(call FunctionCall) Value {
 	thisObject := call.thisObject()
 	this := toValue_object(thisObject)
 	if iterator := call.Argument(0); iterator.isCallable() {
-		length := int64(toUint32(thisObject.get("length")))
+		length := toLength(thisObject.get("length"))
 		callThis := call.Argument(1)
 		values := make([]Value, 0)
 		for index := int64(0); index < length; index++ {
@@ -625,7 +624,7 @@ func builtinArray_reduce(call FunctionCall) Value {
 	if iterator := call.Argument(0); iterator.isCallable() {
 		initial := len(call.ArgumentList) > 1
 		start := call.Argument(1)
-		length := int64(toUint32(thisObject.get("length")))
+		length := toLength(thisObject.get("length"))
 		index := int64(0)
 		if length > 0 || initial {
 			var accumulator Value
@@ -657,7 +656,7 @@ func builtinArray_reduceRight(call FunctionCall) Value {
 	if iterator := call.Argument(0); iterator.isCallable() {
 		initial := len(call.ArgumentList) > 1
 		start := call.Argument(1)
-		length := int64(toUint32(thisObject.get("length")))
+		length := toLength(thisObject.get("length"))
 		if length > 0 || initial {
 			index := length - 1
 			var accumulator Value
