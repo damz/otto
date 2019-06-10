@@ -201,6 +201,26 @@ func Test_toUint16(t *testing.T) {
 	})
 }
 
+func Test_toLength(t *testing.T) {
+	tt(t, func() {
+		test := []interface{}{
+			0, int64(0),
+			-1, int64(0),
+			math.Inf(-1), int64(0),
+			math.NaN(), int64(0),
+			1.1, int64(1),
+			1 << 60, int64(1<<53 - 1),
+		}
+		for index := 0; index < len(test)/2; index++ {
+			// FIXME terst, Make strict again?
+			is(
+				toLength(toValue(test[index*2])),
+				test[index*2+1].(int64),
+			)
+		}
+	})
+}
+
 func Test_sameValue(t *testing.T) {
 	tt(t, func() {
 		is(sameValue(positiveZeroValue(), negativeZeroValue()), false)
