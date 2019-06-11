@@ -1337,6 +1337,75 @@ func _newContext(runtime *_runtime) {
 				call: builtinArray_reduceRight,
 			},
 		}
+		find_function := &_object{
+			runtime:     runtime,
+			class:       "Function",
+			objectClass: _classObject,
+			prototype:   runtime.global.FunctionPrototype,
+			extensible:  true,
+			property: map[string]_property{
+				"length": _property{
+					mode: 0,
+					value: Value{
+						kind:  valueNumber,
+						value: 1,
+					},
+				},
+			},
+			propertyOrder: []string{
+				"length",
+			},
+			value: _nativeFunctionObject{
+				name: "find",
+				call: builtinArray_find,
+			},
+		}
+		findIndex_function := &_object{
+			runtime:     runtime,
+			class:       "Function",
+			objectClass: _classObject,
+			prototype:   runtime.global.FunctionPrototype,
+			extensible:  true,
+			property: map[string]_property{
+				"length": _property{
+					mode: 0,
+					value: Value{
+						kind:  valueNumber,
+						value: 1,
+					},
+				},
+			},
+			propertyOrder: []string{
+				"length",
+			},
+			value: _nativeFunctionObject{
+				name: "findIndex",
+				call: builtinArray_findIndex,
+			},
+		}
+		fill_function := &_object{
+			runtime:     runtime,
+			class:       "Function",
+			objectClass: _classObject,
+			prototype:   runtime.global.FunctionPrototype,
+			extensible:  true,
+			property: map[string]_property{
+				"length": _property{
+					mode: 0,
+					value: Value{
+						kind:  valueNumber,
+						value: 1,
+					},
+				},
+			},
+			propertyOrder: []string{
+				"length",
+			},
+			value: _nativeFunctionObject{
+				name: "fill",
+				call: builtinArray_fill,
+			},
+		}
 		isArray_function := &_object{
 			runtime:     runtime,
 			class:       "Function",
@@ -1522,6 +1591,27 @@ func _newContext(runtime *_runtime) {
 						value: reduceRight_function,
 					},
 				},
+				"find": _property{
+					mode: 0101,
+					value: Value{
+						kind:  valueObject,
+						value: find_function,
+					},
+				},
+				"findIndex": _property{
+					mode: 0101,
+					value: Value{
+						kind:  valueObject,
+						value: findIndex_function,
+					},
+				},
+				"fill": _property{
+					mode: 0101,
+					value: Value{
+						kind:  valueObject,
+						value: fill_function,
+					},
+				},
 			},
 			propertyOrder: []string{
 				"length",
@@ -1546,6 +1636,9 @@ func _newContext(runtime *_runtime) {
 				"filter",
 				"reduce",
 				"reduceRight",
+				"find",
+				"findIndex",
+				"fill",
 			},
 		}
 		runtime.global.Array = &_object{

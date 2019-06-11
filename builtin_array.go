@@ -681,3 +681,52 @@ func builtinArray_reduceRight(call FunctionCall) Value {
 	}
 	panic(call.runtime.panicTypeError())
 }
+
+func builtinArray_find(call FunctionCall) Value {
+	thisObject := call.thisObject()
+	this := toValue_object(thisObject)
+	if iterator := call.Argument(0); iterator.isCallable() {
+		length := toLength(thisObject.get("length"))
+		callThis := call.Argument(1)
+		for index := int64(0); index < length; index++ {
+			if key := arrayIndexToString(index); thisObject.hasProperty(key) {
+				if value := thisObject.get(key); iterator.call(call.runtime, callThis, value, toValue_int64(index), this).bool() {
+					return value
+				}
+			}
+		}
+		return Value{}
+	}
+	panic(call.runtime.panicTypeError())
+}
+
+func builtinArray_findIndex(call FunctionCall) Value {
+	thisObject := call.thisObject()
+	this := toValue_object(thisObject)
+	if iterator := call.Argument(0); iterator.isCallable() {
+		length := toLength(thisObject.get("length"))
+		callThis := call.Argument(1)
+		for index := int64(0); index < length; index++ {
+			if key := arrayIndexToString(index); thisObject.hasProperty(key) {
+				if value := thisObject.get(key); iterator.call(call.runtime, callThis, value, toValue_int64(index), this).bool() {
+					return toValue_int64(index)
+				}
+			}
+		}
+		return toValue_int(-1)
+	}
+	panic(call.runtime.panicTypeError())
+}
+
+func builtinArray_fill(call FunctionCall) Value {
+	thisObject := call.thisObject()
+	value := call.Argument(0)
+
+	length := toLength(thisObject.get("length"))
+	start, end := rangeStartEnd(call.ArgumentList[1:], length, false)
+
+	for index := start; index < end; index++ {
+		thisObject.put(arrayIndexToString(index), value, true)
+	}
+	return toValue_object(thisObject)
+}

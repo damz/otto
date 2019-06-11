@@ -689,6 +689,65 @@ func TestArray_reduceRight(t *testing.T) {
 	})
 }
 
+func TestArray_find(t *testing.T) {
+	tt(t, func() {
+		test, _ := test()
+
+		test(`raise: [].find("abc")`, "TypeError")
+
+		test(`[].find(function() { return true })`, Value{})
+
+		test(`[1,2,3].find(function() { return false })`, Value{})
+
+		test(`[1,2,3].find(function() { return true })`, 1)
+
+		test(`[1,2,3].find(function(_, index) { if (index === 1) return true })`, 2)
+
+		test(`Array.prototype.find.call({}, function(v) { return true; })`, Value{})
+		test(`Array.prototype.find.call({length: -1}, function(v) { return true; })`, Value{})
+		test(`Array.prototype.find.call({0: "foo", 1: "bar", 2: "baz", length: 3}, function(v) { return v === "bar"; })`, "bar")
+	})
+}
+
+func TestArray_findIndex(t *testing.T) {
+	tt(t, func() {
+		test, _ := test()
+
+		test(`raise: [].findIndex("abc")`, "TypeError")
+
+		test(`[].findIndex(function() { return true })`, -1)
+
+		test(`[1,2,3].findIndex(function() { return false })`, -1)
+
+		test(`[1,2,3].findIndex(function() { return true })`, 0)
+
+		test(`[1,2,3].findIndex(function(_, index) { if (index === 1) return true })`, 1)
+
+		test(`Array.prototype.findIndex.call({}, function(v) { return true; })`, -1)
+		test(`Array.prototype.findIndex.call({length: -1}, function(v) { return true; })`, -1)
+		test(`Array.prototype.findIndex.call({0: "foo", 1: "bar", 2: "baz", length: 3}, function(v) { return v === "bar"; })`, 1)
+	})
+}
+
+func TestArray_fill(t *testing.T) {
+	tt(t, func() {
+		test, _ := test()
+
+		test(`var a = [0, 0, 0, 0]; a.fill(1, 1, 3); String(a)`, "0,1,1,0")
+		test(`var a = [0, 0, 0, 0]; a.fill(1, 1, 4); String(a)`, "0,1,1,1")
+		test(`var a = [0, 0, 0, 0]; a.fill(1, 1, 5); String(a)`, "0,1,1,1")
+		test(`var a = [0, 0, 0, 0]; a.fill(1, 1, 2); String(a)`, "0,1,0,0")
+		test(`var a = [0, 0, 0, 0]; a.fill(1, 0, 2); String(a)`, "1,1,0,0")
+
+		test(`var a = [0, 0, 0, 0]; a.fill(1, -1, 2); String(a)`, "0,0,0,0")
+		test(`var a = [0, 0, 0, 0]; a.fill(1, -2); String(a)`, "0,0,1,1")
+		test(`var a = [0, 0, 0, 0]; a.fill(1, -2, -1); String(a)`, "0,0,1,0")
+
+		test(`var a = {length: -1}; Array.prototype.fill.call(a, 1, 0, 100); String(Array.prototype.slice.call(a))`, "")
+		test(`var a = {length: 3}; Array.prototype.fill.call(a, 1, 1, 2); String(Array.prototype.slice.call(a))`, ",1,")
+	})
+}
+
 func TestArray_defineOwnProperty(t *testing.T) {
 	tt(t, func() {
 		test, _ := test()
