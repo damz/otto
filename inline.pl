@@ -247,6 +247,9 @@ sub newContext {
                 "filter", 1,
                 "reduce", 1,
                 "reduceRight", 1,
+                "find", 1,
+                "findIndex", 1,
+                "fill", 1,
             );
             return
             ".${class}Prototype =",
