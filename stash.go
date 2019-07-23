@@ -230,7 +230,7 @@ func (self *_dclStash) outer() _stash {
 }
 
 func (self *_dclStash) newReference(name string, strict bool, _ _at) _reference {
-	return &_stashReference{
+	return _stashReference{
 		name: name,
 		base: self,
 	}
