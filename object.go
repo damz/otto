@@ -28,12 +28,12 @@ func newObject(runtime *_runtime, class string) *_object {
 // 8.12
 
 // 8.12.1
-func (self *_object) getOwnProperty(name string) *_property {
+func (self *_object) getOwnProperty(name string) _property {
 	return self.objectClass.getOwnProperty(self, name)
 }
 
 // 8.12.2
-func (self *_object) getProperty(name string) *_property {
+func (self *_object) getProperty(name string) _property {
 	return self.objectClass.getProperty(self, name)
 }
 

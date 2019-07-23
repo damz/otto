@@ -44,10 +44,10 @@ func (self _goSliceObject) setValue(index int64, value Value) bool {
 	return true
 }
 
-func goSliceGetOwnProperty(self *_object, name string) *_property {
+func goSliceGetOwnProperty(self *_object, name string) _property {
 	// length
 	if name == "length" {
-		return &_property{
+		return _property{
 			value: toValue(self.value.(*_goSliceObject).value.Len()),
 			mode:  0,
 		}
@@ -61,7 +61,7 @@ func goSliceGetOwnProperty(self *_object, name string) *_property {
 		if exists {
 			value = self.runtime.toValue(reflectValue.Interface())
 		}
-		return &_property{
+		return _property{
 			value: value,
 			mode:  0110,
 		}
@@ -69,7 +69,7 @@ func goSliceGetOwnProperty(self *_object, name string) *_property {
 
 	// Other methods
 	if method := self.value.(*_goSliceObject).value.MethodByName(name); (method != reflect.Value{}) {
-		return &_property{
+		return _property{
 			value: self.runtime.toValue(method.Interface()),
 			mode:  0110,
 		}

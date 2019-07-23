@@ -74,7 +74,7 @@ func argumentsGet(self *_object, name string) Value {
 	return objectGet(self, name)
 }
 
-func argumentsGetOwnProperty(self *_object, name string) *_property {
+func argumentsGetOwnProperty(self *_object, name string) _property {
 	property := objectGetOwnProperty(self, name)
 	if value, exists := self.value.(_argumentsObject).get(name); exists {
 		property.value = value

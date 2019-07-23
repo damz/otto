@@ -186,10 +186,11 @@ func (self *_runtime) cmpl_evaluate_nodeCallExpression(node *_nodeCallExpression
 	this := Value{}
 	callee := self.cmpl_evaluate_nodeExpression(node.callee)
 
-	argumentList := []Value{}
+	var argumentList []Value
 	if withArgumentList != nil {
 		argumentList = self.toValueArray(withArgumentList...)
 	} else {
+		argumentList = make([]Value, 0, len(node.argumentList))
 		for _, argumentNode := range node.argumentList {
 			argumentList = append(argumentList, self.cmpl_evaluate_nodeExpression(argumentNode).resolve())
 		}

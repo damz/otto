@@ -22,6 +22,11 @@ type _property struct {
 	mode  _propertyMode
 }
 
+func (self _property) zero() bool {
+	var zero _property
+	return self == zero
+}
+
 func (self _property) writable() bool {
 	return self.mode&modeWriteMask == modeWriteMask&modeOnMask
 }

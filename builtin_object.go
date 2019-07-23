@@ -59,7 +59,7 @@ func builtinObject_propertyIsEnumerable(call FunctionCall) Value {
 	propertyName := call.Argument(0).string()
 	thisObject := call.thisObject()
 	property := thisObject.getOwnProperty(propertyName)
-	if property != nil && property.enumerable() {
+	if !property.zero() && property.enumerable() {
 		return trueValue
 	}
 	return falseValue
@@ -108,10 +108,10 @@ func builtinObject_getOwnPropertyDescriptor(call FunctionCall) Value {
 
 	name := call.Argument(1).string()
 	descriptor := object.getOwnProperty(name)
-	if descriptor == nil {
+	if descriptor.zero() {
 		return Value{}
 	}
-	return toValue_object(call.runtime.fromPropertyDescriptor(*descriptor))
+	return toValue_object(call.runtime.fromPropertyDescriptor(descriptor))
 }
 
 func builtinObject_defineProperty(call FunctionCall) Value {
@@ -206,9 +206,9 @@ func builtinObject_seal(call FunctionCall) Value {
 	object := call.Argument(0)
 	if object := object._object(); object != nil {
 		object.enumerate(true, func(name string) bool {
-			if property := object.getOwnProperty(name); nil != property && property.configurable() {
+			if property := object.getOwnProperty(name); !property.zero() && property.configurable() {
 				property.configureOff()
-				object.defineOwnProperty(name, *property, true)
+				object.defineOwnProperty(name, property, true)
 			}
 			return true
 		})
@@ -242,7 +242,7 @@ func builtinObject_freeze(call FunctionCall) Value {
 	object := call.Argument(0)
 	if object := object._object(); object != nil {
 		object.enumerate(true, func(name string) bool {
-			if property, update := object.getOwnProperty(name), false; nil != property {
+			if property, update := object.getOwnProperty(name), false; !property.zero() {
 				if property.isDataDescriptor() && property.writable() {
 					property.writeOff()
 					update = true
@@ -252,7 +252,7 @@ func builtinObject_freeze(call FunctionCall) Value {
 					update = true
 				}
 				if update {
-					object.defineOwnProperty(name, *property, true)
+					object.defineOwnProperty(name, property, true)
 				}
 			}
 			return true

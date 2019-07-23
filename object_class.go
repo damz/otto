@@ -5,8 +5,8 @@ import (
 )
 
 type _objectClass struct {
-	getOwnProperty    func(*_object, string) *_property
-	getProperty       func(*_object, string) *_property
+	getOwnProperty    func(*_object, string) _property
+	getProperty       func(*_object, string) _property
 	get               func(*_object, string) Value
 	canPut            func(*_object, string) bool
 	put               func(*_object, string, Value, bool)
@@ -166,31 +166,31 @@ func init() {
 // Allons-y
 
 // 8.12.1
-func objectGetOwnProperty(self *_object, name string) *_property {
+func objectGetOwnProperty(self *_object, name string) _property {
 	// Return a _copy_ of the property
 	property, exists := self._read(name)
 	if !exists {
-		return nil
+		return _property{}
 	}
-	return &property
+	return property
 }
 
 // 8.12.2
-func objectGetProperty(self *_object, name string) *_property {
+func objectGetProperty(self *_object, name string) _property {
 	property := self.getOwnProperty(name)
-	if property != nil {
+	if !property.zero() {
 		return property
 	}
 	if self.prototype != nil {
 		return self.prototype.getProperty(name)
 	}
-	return nil
+	return _property{}
 }
 
 // 8.12.3
 func objectGet(self *_object, name string) Value {
 	property := self.getProperty(name)
-	if property != nil {
+	if !property.zero() {
 		return property.get(self)
 	}
 	return Value{}
@@ -202,9 +202,9 @@ func objectCanPut(self *_object, name string) bool {
 	return canPut
 }
 
-func _objectCanPut(self *_object, name string) (canPut bool, property *_property, setter *_object) {
+func _objectCanPut(self *_object, name string) (canPut bool, property _property, setter *_object) {
 	property = self.getOwnProperty(name)
-	if property != nil {
+	if !property.zero() {
 		switch propertyValue := property.value.(type) {
 		case Value:
 			canPut = property.writable()
@@ -219,20 +219,20 @@ func _objectCanPut(self *_object, name string) (canPut bool, property *_property
 	}
 
 	if self.prototype == nil {
-		return self.extensible, nil, nil
+		return self.extensible, _property{}, nil
 	}
 
 	property = self.prototype.getProperty(name)
-	if property == nil {
-		return self.extensible, nil, nil
+	if property.zero() {
+		return self.extensible, _property{}, nil
 	}
 
 	switch propertyValue := property.value.(type) {
 	case Value:
 		if !self.extensible {
-			return false, nil, nil
+			return false, _property{}, nil
 		}
-		return property.writable(), nil, nil
+		return property.writable(), _property{}, nil
 	case _propertyGetSet:
 		setter = propertyValue[1]
 		canPut = setter != nil
@@ -259,9 +259,9 @@ func objectPut(self *_object, name string, value Value, throw bool) {
 			self.runtime.typeErrorResult(throw)
 		} else if setter != nil {
 			setter.call(toValue(self), []Value{value}, false, nativeFrame)
-		} else if property != nil {
+		} else if !property.zero() {
 			property.value = value
-			self.defineOwnProperty(name, *property, throw)
+			self.defineOwnProperty(name, property, throw)
 		} else {
 			self.defineProperty(name, value, 0111, throw)
 		}
@@ -277,9 +277,9 @@ func objectPut(self *_object, name string, value Value, throw bool) {
 	}
 
 	property := self.getOwnProperty(name)
-	if property == nil {
+	if property.zero() {
 		property = self.getProperty(name)
-		if property != nil {
+		if !property.zero() {
 			if getSet, isAccessor := property.value.(_propertyGetSet); isAccessor {
 				getSet[1].call(toValue(self), []Value{value}, false, nativeFrame)
 				return
@@ -290,7 +290,7 @@ func objectPut(self *_object, name string, value Value, throw bool) {
 		switch propertyValue := property.value.(type) {
 		case Value:
 			property.value = value
-			self.defineOwnProperty(name, *property, throw)
+			self.defineOwnProperty(name, property, throw)
 		case _propertyGetSet:
 			if propertyValue[1] != nil {
 				propertyValue[1].call(toValue(self), []Value{value}, false, nativeFrame)
@@ -307,11 +307,11 @@ func objectPut(self *_object, name string, value Value, throw bool) {
 
 // 8.12.6
 func objectHasProperty(self *_object, name string) bool {
-	return self.getProperty(name) != nil
+	return !self.getProperty(name).zero()
 }
 
 func objectHasOwnProperty(self *_object, name string) bool {
-	return self.getOwnProperty(name) != nil
+	return !self.getOwnProperty(name).zero()
 }
 
 // 8.12.9
@@ -447,7 +447,7 @@ Reject:
 
 func objectDelete(self *_object, name string, throw bool) bool {
 	property_ := self.getOwnProperty(name)
-	if property_ == nil {
+	if property_.zero() {
 		return true
 	}
 	if property_.configurable() {
