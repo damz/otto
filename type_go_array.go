@@ -54,10 +54,10 @@ func (self _goArrayObject) setValue(index int64, value Value) bool {
 	return true
 }
 
-func goArrayGetOwnProperty(self *_object, name string) *_property {
+func goArrayGetOwnProperty(self *_object, name string) _property {
 	// length
 	if name == "length" {
-		return &_property{
+		return _property{
 			value: toValue(reflect.Indirect(self.value.(*_goArrayObject).value).Len()),
 			mode:  0,
 		}
@@ -72,7 +72,7 @@ func goArrayGetOwnProperty(self *_object, name string) *_property {
 		if exists {
 			value = self.runtime.toValue(reflectValue.Interface())
 		}
-		return &_property{
+		return _property{
 			value: value,
 			mode:  object.propertyMode,
 		}

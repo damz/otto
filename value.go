@@ -280,9 +280,9 @@ func toValue_reflectValuePanic(value interface{}, kind reflect.Kind) {
 }
 
 func toValue(value interface{}) Value {
-	switch value := value.(type) {
+	switch v := value.(type) {
 	case Value:
-		return value
+		return v
 	case bool:
 		return Value{valueBoolean, value}
 	case int:
@@ -306,7 +306,7 @@ func toValue(value interface{}) Value {
 	case uint64:
 		return Value{valueNumber, value}
 	case float32:
-		return Value{valueNumber, float64(value)}
+		return Value{valueNumber, float64(v)}
 	case float64:
 		return Value{valueNumber, value}
 	case []uint16:
@@ -317,9 +317,9 @@ func toValue(value interface{}) Value {
 	case *_object:
 		return Value{valueObject, value}
 	case *Object:
-		return Value{valueObject, value.object}
+		return Value{valueObject, v.object}
 	case Object:
-		return Value{valueObject, value.object}
+		return Value{valueObject, v.object}
 	case _reference: // reference is an interface (already a pointer)
 		return Value{valueReference, value}
 	case _result:
@@ -328,51 +328,51 @@ func toValue(value interface{}) Value {
 		// TODO Ugh.
 		return Value{}
 	case reflect.Value:
-		for value.Kind() == reflect.Ptr {
+		for v.Kind() == reflect.Ptr {
 			// We were given a pointer, so we'll drill down until we get a non-pointer
 			//
 			// These semantics might change if we want to start supporting pointers to values transparently
 			// (It would be best not to depend on this behavior)
 			// FIXME: UNDEFINED
-			if value.IsNil() {
+			if v.IsNil() {
 				return Value{}
 			}
-			value = value.Elem()
+			v = v.Elem()
 		}
-		switch value.Kind() {
+		switch v.Kind() {
 		case reflect.Bool:
-			return Value{valueBoolean, bool(value.Bool())}
+			return Value{valueBoolean, bool(v.Bool())}
 		case reflect.Int:
-			return Value{valueNumber, int(value.Int())}
+			return Value{valueNumber, int(v.Int())}
 		case reflect.Int8:
-			return Value{valueNumber, int8(value.Int())}
+			return Value{valueNumber, int8(v.Int())}
 		case reflect.Int16:
-			return Value{valueNumber, int16(value.Int())}
+			return Value{valueNumber, int16(v.Int())}
 		case reflect.Int32:
-			return Value{valueNumber, int32(value.Int())}
+			return Value{valueNumber, int32(v.Int())}
 		case reflect.Int64:
-			return Value{valueNumber, int64(value.Int())}
+			return Value{valueNumber, int64(v.Int())}
 		case reflect.Uint:
-			return Value{valueNumber, uint(value.Uint())}
+			return Value{valueNumber, uint(v.Uint())}
 		case reflect.Uint8:
-			return Value{valueNumber, uint8(value.Uint())}
+			return Value{valueNumber, uint8(v.Uint())}
 		case reflect.Uint16:
-			return Value{valueNumber, uint16(value.Uint())}
+			return Value{valueNumber, uint16(v.Uint())}
 		case reflect.Uint32:
-			return Value{valueNumber, uint32(value.Uint())}
+			return Value{valueNumber, uint32(v.Uint())}
 		case reflect.Uint64:
-			return Value{valueNumber, uint64(value.Uint())}
+			return Value{valueNumber, uint64(v.Uint())}
 		case reflect.Float32:
-			return Value{valueNumber, float32(value.Float())}
+			return Value{valueNumber, float32(v.Float())}
 		case reflect.Float64:
-			return Value{valueNumber, float64(value.Float())}
+			return Value{valueNumber, float64(v.Float())}
 		case reflect.String:
-			return Value{valueString, string(value.String())}
+			return Value{valueString, string(v.String())}
 		default:
-			toValue_reflectValuePanic(value.Interface(), value.Kind())
+			toValue_reflectValuePanic(v.Interface(), v.Kind())
 		}
 	default:
-		return toValue(reflect.ValueOf(value))
+		return toValue(reflect.ValueOf(v))
 	}
 	// FIXME?
 	panic(newError(nil, "TypeError", 0, "invalid value: %v (%T)", value, value))

@@ -46,22 +46,22 @@ func (self _goMapObject) toValue(value Value) reflect.Value {
 	return reflectValue
 }
 
-func goMapGetOwnProperty(self *_object, name string) *_property {
+func goMapGetOwnProperty(self *_object, name string) _property {
 	object := self.value.(*_goMapObject)
 	value := object.value.MapIndex(object.toKey(name))
 	if value.IsValid() {
-		return &_property{self.runtime.toValue(value.Interface()), 0111}
+		return _property{self.runtime.toValue(value.Interface()), 0111}
 	}
 
 	// Other methods
 	if method := self.value.(*_goMapObject).value.MethodByName(name); (method != reflect.Value{}) {
-		return &_property{
+		return _property{
 			value: self.runtime.toValue(method.Interface()),
 			mode:  0110,
 		}
 	}
 
-	return nil
+	return _property{}
 }
 
 func goMapEnumerate(self *_object, all bool, each func(string) bool) {

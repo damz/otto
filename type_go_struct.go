@@ -73,11 +73,11 @@ func (self _goStructObject) setValue(name string, value Value) bool {
 	return true
 }
 
-func goStructGetOwnProperty(self *_object, name string) *_property {
+func goStructGetOwnProperty(self *_object, name string) _property {
 	object := self.value.(*_goStructObject)
 	value := object.getValue(name)
 	if value.IsValid() {
-		return &_property{self.runtime.toValue(value.Interface()), 0110}
+		return _property{self.runtime.toValue(value.Interface()), 0110}
 	}
 
 	return objectGetOwnProperty(self, name)

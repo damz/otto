@@ -96,7 +96,7 @@ func arrayDefineOwnProperty(self *_object, name string, descriptor _property, th
 		}
 		if index >= int64(length) {
 			lengthProperty.value = toValue_uint32(uint32(index + 1))
-			objectDefineOwnProperty(self, "length", *lengthProperty, false)
+			objectDefineOwnProperty(self, "length", lengthProperty, false)
 			return true
 		}
 	}

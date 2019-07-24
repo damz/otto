@@ -401,13 +401,13 @@ func (self *_runtime) convertCallParameter(v Value, t reflect.Type) reflect.Valu
 					}
 
 					for i := int64(0); i < l; i++ {
-						var p *_property
+						var p _property
 						if gslice {
 							p = goSliceGetOwnProperty(o, strconv.FormatInt(i, 10))
 						} else {
 							p = goArrayGetOwnProperty(o, strconv.FormatInt(i, 10))
 						}
-						if p == nil {
+						if p.zero() {
 							continue
 						}
 
