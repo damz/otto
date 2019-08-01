@@ -430,9 +430,7 @@ func TestParserErr(t *testing.T) {
 			test("abc.class = 1", nil)
 			test("var class;", "(anonymous): Line 1:5 Unexpected reserved word")
 
-			test("const", "(anonymous): Line 1:1 Unexpected reserved word")
-			test("abc.const = 1", nil)
-			test("var const;", "(anonymous): Line 1:5 Unexpected reserved word")
+			test("var const;", "(anonymous): Line 1:5 Unexpected token const")
 
 			test("enum", "(anonymous): Line 1:1 Unexpected reserved word")
 			test("abc.enum = 1", nil)
@@ -465,9 +463,8 @@ func TestParserErr(t *testing.T) {
 			test(`abc.interface = 1`, nil)
 			test(`var interface;`, nil)
 
-			test(`let`, nil)
 			test(`abc.let = 1`, nil)
-			test(`var let;`, nil)
+			test(`var let;`, "(anonymous): Line 1:5 Unexpected token let")
 
 			test(`package`, nil)
 			test(`abc.package = 1`, nil)

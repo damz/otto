@@ -72,7 +72,7 @@ BITWISE_NOT                    ~
 NOT_EQUAL                      !=
 STRICT_NOT_EQUAL               !==
 LESS_OR_EQUAL                  <=
-GREATER_OR_EQUAL               <=
+GREATER_OR_EQUAL               >=
 
 LEFT_PARENTHESIS               (
 LEFT_BRACKET                   [
@@ -93,6 +93,9 @@ IN
 DO
 
 VAR
+LET
+CONST
+
 FOR
 NEW
 TRY
@@ -181,7 +184,6 @@ _END_
     }
 
     for my $name (qw/
-        const
         class
         enum
         export
@@ -200,7 +202,6 @@ _END_
     for my $name (qw/
         implements
         interface
-        let
         package
         private
         protected

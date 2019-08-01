@@ -80,6 +80,9 @@ const (
 	DO
 
 	VAR
+	LET
+	CONST
+
 	FOR
 	NEW
 	TRY
@@ -175,6 +178,8 @@ var token2string = [...]string{
 	IN:                          "in",
 	DO:                          "do",
 	VAR:                         "var",
+	LET:                         "let",
+	CONST:                       "const",
 	FOR:                         "for",
 	NEW:                         "new",
 	TRY:                         "try",
@@ -211,6 +216,12 @@ var keywordTable = map[string]_keyword{
 	},
 	"var": _keyword{
 		token: VAR,
+	},
+	"let": _keyword{
+		token: LET,
+	},
+	"const": _keyword{
+		token: CONST,
 	},
 	"for": _keyword{
 		token: FOR,
@@ -278,10 +289,6 @@ var keywordTable = map[string]_keyword{
 	"instanceof": _keyword{
 		token: INSTANCEOF,
 	},
-	"const": _keyword{
-		token:         KEYWORD,
-		futureKeyword: true,
-	},
 	"class": _keyword{
 		token:         KEYWORD,
 		futureKeyword: true,
@@ -312,11 +319,6 @@ var keywordTable = map[string]_keyword{
 		strict:        true,
 	},
 	"interface": _keyword{
-		token:         KEYWORD,
-		futureKeyword: true,
-		strict:        true,
-	},
-	"let": _keyword{
 		token:         KEYWORD,
 		futureKeyword: true,
 		strict:        true,

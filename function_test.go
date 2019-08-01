@@ -343,3 +343,44 @@ func TestFunction_caller(t *testing.T) {
         `, true)
 	})
 }
+
+func TestFunction_let(t *testing.T) {
+	tt(t, func() {
+		test, _ := test()
+
+		test(`
+(function() {
+	let bar = 123;
+	{ let bar = 456; }
+	return bar == 123;
+})()
+`, true)
+	})
+}
+
+func TestFunction_const(t *testing.T) {
+	tt(t, func() {
+		test, _ := test()
+
+		test(`
+(function() {
+	const bar = 123;
+	{ const bar = 456; }
+	return bar == 123;
+})()
+`, true)
+
+		test(`
+(function() {
+	try {
+		const bar = 123;
+		bar = 1;
+		return false;
+	} catch(e) {
+		return true;
+	}
+})()
+`, true)
+
+	})
+}

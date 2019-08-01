@@ -11,10 +11,11 @@ import (
 type _stash interface {
 	hasBinding(string) bool            //
 	createBinding(string, bool, Value) // CreateMutableBinding
-	setBinding(string, Value, bool)    // SetMutableBinding
-	getBinding(string, bool) Value     // GetBindingValue
-	deleteBinding(string) bool         //
-	setValue(string, Value, bool)      // createBinding + setBinding
+	createImmutableBinding(string, Value)
+	setBinding(string, Value, bool) // SetMutableBinding
+	getBinding(string, bool) Value  // GetBindingValue
+	deleteBinding(string) bool      //
+	setValue(string, Value, bool)   // createBinding + setBinding
 
 	outer() _stash
 	runtime() *_runtime
@@ -79,6 +80,10 @@ func (self *_objectStash) createBinding(name string, deletable bool, value Value
 	self.object.defineProperty(name, value, mode, false)
 }
 
+func (self *_objectStash) createImmutableBinding(name string, value Value) {
+	self.object.defineProperty(name, value, _propertyMode(0100), false)
+}
+
 func (self *_objectStash) setBinding(name string, value Value, strict bool) {
 	self.object.put(name, value, strict)
 }
@@ -124,10 +129,11 @@ type _dclStash struct {
 }
 
 type _dclProperty struct {
-	value     Value
-	mutable   bool
-	deletable bool
-	readable  bool
+	value       Value
+	mutable     bool
+	initialized bool
+	deletable   bool
+	readable    bool
 }
 
 func (runtime *_runtime) newDeclarationStash(outer _stash) *_dclStash {
@@ -170,10 +176,25 @@ func (self *_dclStash) createBinding(name string, deletable bool, value Value) {
 		panic(fmt.Errorf("createBinding: %s: already exists", name))
 	}
 	self.property[name] = _dclProperty{
-		value:     value,
-		mutable:   true,
-		deletable: deletable,
-		readable:  false,
+		value:       value,
+		mutable:     true,
+		initialized: true,
+		deletable:   deletable,
+		readable:    true,
+	}
+}
+
+func (self *_dclStash) createImmutableBinding(name string, value Value) {
+	_, exists := self.property[name]
+	if exists {
+		panic(fmt.Errorf("createBinding: %s: already exists", name))
+	}
+	self.property[name] = _dclProperty{
+		value:       value,
+		mutable:     false,
+		initialized: false,
+		deletable:   false,
+		readable:    true,
 	}
 }
 
@@ -182,11 +203,12 @@ func (self *_dclStash) setBinding(name string, value Value, strict bool) {
 	if !exists {
 		panic(fmt.Errorf("setBinding: %s: missing", name))
 	}
-	if property.mutable {
+	if property.mutable || !property.initialized {
 		property.value = value
+		property.initialized = true
 		self.property[name] = property
 	} else {
-		self._runtime.typeErrorResult(strict)
+		self._runtime.typeErrorResult(strict || !property.mutable)
 	}
 }
 
@@ -204,7 +226,7 @@ func (self *_dclStash) getBinding(name string, throw bool) Value {
 	if !exists {
 		panic(fmt.Errorf("getBinding: %s: missing", name))
 	}
-	if !property.mutable && !property.readable {
+	if !property.readable {
 		if throw { // strict?
 			panic(self._runtime.panicTypeError())
 		}
